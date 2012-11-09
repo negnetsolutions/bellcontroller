@@ -76,11 +76,13 @@ class bellcontroll {
   }
   private function delay($delay)
   {
-    usleep($delay* 1000);
-    // echo ($delay*1000)."\n";
-    // 200000
-    // 800000
-    // 200
+    $delay = $delay * .001;
+    $end = (microtime(true) + $delay);
+
+    while( $end > microtime(true) ) {
+    
+    }
+    // usleep($delay* 1000);
   }
   private function sendIO()
   {
