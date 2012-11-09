@@ -20,7 +20,6 @@ define("CRONTAB", "/usr/bin/crontab");
 define("WRITE_TO_CRONTAB", false);
 define("STATUS_FILE", "/Users/andy/Sites/bell/daemon/status");
 define("RINGER", "/Users/andy/Sites/bell/daemon/ringer.php");
-define("RINGER_USER", "andy");
 
 class DefaultController extends Controller
 {
@@ -184,7 +183,7 @@ class DefaultController extends Controller
           return false;
         }
 
-        $crontab .= str_replace($parts[5], RINGER_USER . ' '. $this->getRinger($alerts[$alert_id]['beepcode']), $line)." /dev/null 2>&1\n";
+        $crontab .= str_replace($parts[5], $this->getRinger($alerts[$alert_id]['beepcode']), $line)." /dev/null 2>&1\n";
       }
       
       if( file_put_contents(CRONTAB_FILE,$crontab ) === false ) {
