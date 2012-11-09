@@ -63,11 +63,6 @@ class DefaultController extends Controller
       if(($error=$this->validateKey($this->getRequest())) !== true) {
         return $this->getResponse(null, $error);
       }
-      //minute (0-59), hour (0-23, 0 = midnight), day (1-31), month (1-12), weekday (0-6, 0 = Sunday), command
-      $actions = $this->getDoctrine()
-        ->getRepository('NegnetBellControllerBundle:Action')
-        ->findAll()
-      ;
 
       if( ($schedule = file_get_contents(CRONTAB_PRE_FILE)) === false ) {
         return $this->getResponse(null, 'Could not read file: '.CRONTAB_PRE_FILE);
