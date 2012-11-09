@@ -89,6 +89,8 @@ class bellcontroll {
       $this->writeIO($stage['type']);
       $this->delay($stage['delay']);
     }
+    //turn everything off
+    $this->writeIO(OFF);
   }
 
 
