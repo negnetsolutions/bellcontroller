@@ -16,6 +16,8 @@ use Negnet\Bell\ControllerBundle\Entity\Alert;
 
 define("CRONTAB_PRE_FILE", "/Users/andy/Sites/bell/daemon/crontab_pre");
 define("CRONTAB_FILE", "/Users/andy/Sites/bell/daemon/crontab");
+define("CRONTAB", "/usr/bin/crontab");
+define("WRITE_TO_CRONTAB", false);
 define("STATUS_FILE", "/Users/andy/Sites/bell/daemon/status");
 define("RINGER", "/Users/andy/Sites/bell/daemon/ringer.php");
 define("RINGER_USER", "andy");
@@ -189,6 +191,10 @@ class DefaultController extends Controller
         return false;
       }
 
+      if( WRITE_TO_CRONTAB == true ) {
+        exec(CRONTAB.' '.CRONTAB_FILE);
+      }
+      
       return true;
     }
     private function getModes()
