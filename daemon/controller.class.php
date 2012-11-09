@@ -5,6 +5,7 @@ require_once(dirname(__FILE__).'/ledcontroller.class.php');
 require_once(dirname(__FILE__).'/gpiocontroller.class.php');
 
 define("STATUS_FILE", "/Users/andy/Sites/bell/daemon/status");
+define("WRITE_STATUS_FILE", false);
 define("ON", 1);
 define("OFF", 0);
 
@@ -52,6 +53,9 @@ class bellcontroll {
   }
   private function writeStatus($status)
   {
+    if( WRITE_STATUS_FILE == false )
+      return;
+    
     if( !file_put_contents(STATUS_FILE, $status) ) {
       die("Could not write to status file!");
     }
