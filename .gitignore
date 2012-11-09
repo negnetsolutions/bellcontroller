@@ -1,4 +1,4 @@
-cache*
+app/cache/*
 logs*
 *.lock
 daemon/crontab
