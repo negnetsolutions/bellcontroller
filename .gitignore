@@ -1,0 +1,7 @@
+cache*
+logs*
+*.lock
+daemon/crontab
+daemon/crontab_pre
+daemon/status
+._*
