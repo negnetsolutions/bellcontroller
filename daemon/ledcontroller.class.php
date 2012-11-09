@@ -2,7 +2,7 @@
 
 require_once(dirname(__FILE__).'/iocontroller.class.php');
 
-class LEDController 
+class LEDController extends IOController
 {
 
   private $LEDPin = 2;
