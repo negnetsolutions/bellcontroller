@@ -402,7 +402,7 @@ class DefaultController extends Controller
       ;
 
       if(!$valid_token){
-        return 'Invalid X-Server-Token';
+        return 'Invalid Password!';
       }
 
       return true;
