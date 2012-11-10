@@ -6,7 +6,7 @@ class GPIOController extends IOController
 {
   private $GPIOPin = 0;
 
-  function __construct($pin, $deallocate_when_done=false) {
+  function __construct($pin, $deallocate_when_done=true) {
 
     $this->GPIOPin = $pin;
     $this->DEALLOC_PIN = $deallocate_when_done;
