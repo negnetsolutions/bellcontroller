@@ -58,7 +58,7 @@ class GPIOController extends IOController
 
   function __destruct() {
 
-    if( $DEALLOC_PIN == true )
+    if( $this->DEALLOC_PIN == true )
       $this->deallocPin();
   }
   
