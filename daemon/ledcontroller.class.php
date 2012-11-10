@@ -12,7 +12,14 @@ class LEDController extends IOController
     $this->LEDPin = $pin;
   }
 
- public function write($value) {
+  public function blink($delay_on=500, $delay_off=500)
+  {
+    $this->write(1);
+    $this->write_string_to_port("/sys/class/leds/beaglebone::usr".$this->LEDPin."/trigger", 'timer');
+    $this->write_to_port("/sys/class/leds/beaglebone::usr".$this->LEDPin."/delay_on", $delay_on);
+    $this->write_to_port("/sys/class/leds/beaglebone::usr".$this->LEDPin."/delay_off", $delay_off);
+  }
+  public function write($value) {
 
     return $this->write_to_port("/sys/class/leds/beaglebone::usr".$this->LEDPin."/brightness",$value);
   }
