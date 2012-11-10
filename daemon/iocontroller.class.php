@@ -4,6 +4,7 @@ class IOController
 {
 
   private $handle;
+  protected $DEALLOC_PIN = true;
 
   protected function write_to_port($path,$value) {
 
@@ -17,6 +18,17 @@ class IOController
 
     return true;
   }
+  public function allocPin() {
 
+  }
+
+  public function deallocPin() {
+
+  }
+
+  function __destruct() {
+    if( $this->DEALLOC_PIN == true )
+      $this->deallocPin();
+  }
 
 }

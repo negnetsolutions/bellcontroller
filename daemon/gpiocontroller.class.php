@@ -4,9 +4,7 @@ require_once(dirname(__FILE__).'/iocontroller.class.php');
 
 class GPIOController extends IOController
 {
-
   private $GPIOPin = 0;
-  public $DEALLOC_PIN = false;
 
   function __construct($pin, $deallocate_when_done=false) {
 
@@ -56,11 +54,6 @@ class GPIOController extends IOController
 
   }
 
-  function __destruct() {
-
-    if( $this->DEALLOC_PIN == true )
-      $this->deallocPin();
-  }
   
 
 }
