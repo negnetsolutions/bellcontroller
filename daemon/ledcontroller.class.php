@@ -12,6 +12,12 @@ class LEDController extends IOController
     $this->LEDPin = $pin;
   }
 
+  public function heartbeat()
+  {
+    $this->write(1);
+    $this->write_string_to_port("/sys/class/leds/beaglebone::usr".$this->LEDPin."/trigger", 'heartbeat');
+  }
+  
   public function blink($delay_on=500, $delay_off=500)
   {
     $this->write(1);
