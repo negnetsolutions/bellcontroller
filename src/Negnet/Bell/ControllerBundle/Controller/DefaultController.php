@@ -16,30 +16,16 @@ use Negnet\Bell\ControllerBundle\Entity\Alert;
 
 define("CRONTAB_PRE_FILE", "/Users/andy/Sites/bell/daemon/crontab_pre");
 define("CRONTAB_FILE", "/Users/andy/Sites/bell/daemon/crontab");
+define("STATUS_FILE", "/Users/andy/Sites/bell/daemon/status");
 define("CRONTAB", "/usr/bin/crontab");
 define("WRITE_TO_CRONTAB", false);
-define("STATUS_FILE", "/Users/andy/Sites/bell/daemon/status");
 define("RINGER", "/Users/andy/Sites/bell/daemon/ringer.php");
+
+define("READY", 'Ready.');
+define("PAUSED", 'Schedule Paused.');
 
 class DefaultController extends Controller
 {
-    /**
-     * @Route("/hello/{name}")
-     * @Template()
-     */
-    public function indexAction($name)
-    {
-        return array('name' => $name);
-    }
-
-    private function getStatus()
-    {
-      if( ($status_line = file_get_contents(STATUS_FILE)) === false ) {
-        return "Error";
-      }
-
-      return trim($status_line);
-    }
     /**
      * @Route("/api/get_status", defaults={"_format"="json"})
      */
@@ -52,6 +38,54 @@ class DefaultController extends Controller
 
       $data = array();
       $data['modes'] = $this->getModes();
+      $data['status'] = $this->getStatus();
+      return $this->getResponse($data);
+    }
+    /**
+     * @Route("/api/pause_schedule", defaults={"_format"="json"})
+     * @Method({"GET", "POST"})
+     */
+    public function setPauseAction()
+    {
+      if(($error=$this->validateKey($this->getRequest())) !== true) {
+        return $this->getResponse(null, $error);
+      }
+      
+      if( !is_array($params = $this->getInputData()) ) {
+        return $this->getResponse(null, $params);
+      }
+
+      if( !$params['data']['pause'] ) {
+        return $this->getResponse(null, 'pause not set!');
+      }
+
+      if( $params['data']['pause'] == 'true' ) {
+        //set pause
+        
+        $crontab = "# Schedule Paused. ";
+        
+        if( $this->writeCrontabFile($crontab) == false ) {
+          return false;
+        }
+
+        $this->writeStatusFile(PAUSED);
+        
+      }
+      else {
+      
+        if( ($schedule = file_get_contents(CRONTAB_PRE_FILE)) === false ) {
+          return $this->getResponse(null, 'Could not read '.CRONTAB_PRE_FILE);
+        }
+        
+        $this->writeStatusFile(READY);
+
+        if( $this->writeCrontab($schedule) === false ) {
+          return $this->getResponse(null, 'Could not save crontab!');
+        }
+
+      }
+      
+      $data = array();
       $data['status'] = $this->getStatus();
       return $this->getResponse($data);
     }
@@ -83,18 +117,10 @@ class DefaultController extends Controller
         return $this->getResponse(null, $error);
       }
       
-      $content = $this->getRequest()->getContent();
-
-      if(empty($content)) {
-        return $this->getResponse(null, 'No Data');
+      if( !is_array($params = $this->getInputData()) ) {
+        return $this->getResponse(null, $params);
       }
-
-      $params = json_decode($content, true);
-
-      if(!$params) {
-        return $this->getResponse(null, 'Data Corruption Error. Not Saving.');
-      }
-
+        
       if( !$params['data']['schedule'] ) {
         return $this->getResponse(null, 'Schedule Missing!');
       }
@@ -154,6 +180,11 @@ class DefaultController extends Controller
     }
     private function writeCrontab($data)
     {
+      //check if schedule is paused
+      if( $this->getStatus() != READY ) {
+        return true;
+      }
+      
       $alerts = $this->getAlerts();
       $alert_names = array();
       foreach( $alerts as $alert ) {
@@ -185,15 +216,23 @@ class DefaultController extends Controller
 
         $crontab .= str_replace($parts[5], $this->getRinger($alerts[$alert_id]['beepcode']), $line)." /dev/null 2>&1\n";
       }
+
+      if( $this->writeCrontabFile($crontab) == false ) {
+        return false;
+      }
       
-      if( file_put_contents(CRONTAB_FILE,$crontab ) === false ) {
+      return true;
+    }
+    private function writeCrontabFile($contents)
+    {
+      if( file_put_contents(CRONTAB_FILE,$contents ) === false ) {
         return false;
       }
 
       if( WRITE_TO_CRONTAB == true ) {
         exec(CRONTAB.' '.CRONTAB_FILE);
       }
-      
+
       return true;
     }
     private function getModes()
@@ -239,16 +278,8 @@ class DefaultController extends Controller
         return $this->getResponse(null, $error);
       }
       
-      $content = $this->getRequest()->getContent();
-
-      if(empty($content)) {
-        return $this->getResponse(null, 'No Data');
-      }
-
-      $params = json_decode($content, true);
-
-      if(!$params) {
-        return $this->getResponse(null, 'Data Corruption Error. Not Saving.');
+      if( !is_array($params = $this->getInputData()) ) {
+        return $this->getResponse(null, $params);
       }
 
       //delete old actions
@@ -350,16 +381,8 @@ class DefaultController extends Controller
         return $this->getResponse(null, $error);
       }
       
-      $content = $this->getRequest()->getContent();
-
-      if(empty($content)) {
-        return $this->getResponse(null, 'No Data');
-      }
-
-      $params = json_decode($content, true);
-
-      if($params == false) {
-        return $this->getResponse(null, "Could not read params");
+      if( !is_array($params = $this->getInputData()) ) {
+        return $this->getResponse(null, $params);
       }
       
       $modes = $this->getDoctrine()
@@ -389,6 +412,37 @@ class DefaultController extends Controller
       
       return $this->getResponse($data);
     }
+    
+
+    private function getStatus()
+    {
+      if( ($status_line = file_get_contents(STATUS_FILE)) === false ) {
+        return "Error";
+      }
+
+      return trim($status_line);
+    }
+    private function getInputData()
+    {
+      $content = $this->getRequest()->getContent();
+
+      if(empty($content)) {
+        return 'No Data';
+      }
+
+      $params = json_decode($content, true);
+
+      if(!$params) {
+        return 'Data Corruption Error.';
+      }
+
+      if( count( $params ) == 0 ) {
+        return 'No Data';
+      }
+
+      return $params;
+    }
+
 
     private function validateKey($request)
     {
@@ -427,5 +481,11 @@ class DefaultController extends Controller
       $response->headers->set('Content-type', 'application/json; charset=utf-8');
       $response->setContent(json_encode($this->buildResponse($data, $error)));
       return $response;
+    }
+    private function writeStatusFile($status)
+    {
+      if( !file_put_contents(STATUS_FILE, $status) ) {
+        die("Could not write to status file!");
+      }
     }
 }
